@@ -1,8 +1,13 @@
+# O (Output) is the build directory
+ifeq ($O,)
+O = .
+endif
+
 # files
 SRCS = $(wildcard *.c)
-DEPS = $(SRCS:%.c=%.d)
-OBJS = $(SRCS:%.c=%.o)
-BINS = foo
+DEPS = $(SRCS:%.c=$O/%.d)
+OBJS = $(SRCS:%.c=$O/%.o)
+BINS = $O/foo
 
 # options
 override CPPFLAGS +=
@@ -19,10 +24,13 @@ endif
 
 # rules
 
-%.d: %.c
-	@ $(CC) -MM -MT '$@ $*.o' $(CPPFLAGS) -MF $@ $< || rm -f $@
+$O:
+	@ mkdir -p $O
 
-%.o: %.c
+$O/%.d: $(notdir %.c) | $O
+	@ $(CC) -MM -MT '$@ $O/$*.o' $(CPPFLAGS) -MF $@ $< || rm -f $@
+
+$O/%.o: $(notdir %.c)
 	$(CC) -c $(CPPFLAGS) $(CFLAGS) -o $@ $<
 
 $(BINS): $(OBJS)
