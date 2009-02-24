@@ -22,9 +22,14 @@ endif
 %.d: %.c
 	@ $(CC) -MM -MT '$@ $*.o' $(CPPFLAGS) -MF $@ $< || rm -f $@
 
+%.o: %.c
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) -o $@ $<
+
+$(BINS): $(OBJS)
+	$(CC) $(LDFLAGS) -o $@ $^
+
 .PHONY: all
 all: $(BINS)
-$(BINS): $(OBJS)
 
 .PHONY: clean
 clean:
