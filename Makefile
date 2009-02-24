@@ -11,7 +11,7 @@ endif
 SRCS = $(wildcard *.c)
 DEPS = $(SRCS:%.c=$O/%.d)
 OBJS = $(SRCS:%.c=$O/%.o)
-BINS = $O/foo
+BINS = $O/foo $O/bar
 
 # options
 override CPPFLAGS +=
@@ -24,6 +24,8 @@ all:
 # dependencies
 ifneq ($(MAKECMDGOALS),clean)
 -include $(DEPS)
+$O/foo: $O/foo.o
+$O/bar: $O/bar.o $O/baz.o
 endif
 
 # rules verbosity
@@ -46,7 +48,7 @@ $O/%.o: $(notdir %.c)
 	$(call ECHO_DO, '  CC      $(notdir $@)', \
 	$(CC) -c $(CPPFLAGS) $(CFLAGS) -o $@ $< )
 
-$(BINS): $(OBJS)
+$(BINS):
 	$(call ECHO_DO, '  LD      $(notdir $@)', \
 	$(CC) $(LDFLAGS) -o $@ $^ )
 
