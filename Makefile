@@ -2,6 +2,10 @@
 ifeq ($O,)
 O = .
 endif
+# V (Verbosity) is 0 (quiet) or 1 (verbose)
+ifeq ($V,0)
+override V =
+endif
 
 # files
 SRCS = $(wildcard *.c)
@@ -22,23 +26,34 @@ ifneq ($(MAKECMDGOALS),clean)
 -include $(DEPS)
 endif
 
+# rules verbosity
+define ECHO_DO
+@ $(if $V, echo $2, $(if $(strip $1), echo $1))
+@ $2
+endef
+
 # rules
 
 $O:
-	@ mkdir -p $O
+	$(call ECHO_DO, '  MKDIR   $@', \
+	mkdir -p $O )
 
 $O/%.d: $(notdir %.c) | $O
-	@ $(CC) -MM -MT '$@ $O/$*.o' $(CPPFLAGS) -MF $@ $< || rm -f $@
+	$(call ECHO_DO, '  DEP     $(notdir $@)', \
+	$(CC) -MM -MT '$@ $O/$*.o' $(CPPFLAGS) -MF $@ $< || rm -f $@ )
 
 $O/%.o: $(notdir %.c)
-	$(CC) -c $(CPPFLAGS) $(CFLAGS) -o $@ $<
+	$(call ECHO_DO, '  CC      $(notdir $@)', \
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) -o $@ $< )
 
 $(BINS): $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $^
+	$(call ECHO_DO, '  LD      $(notdir $@)', \
+	$(CC) $(LDFLAGS) -o $@ $^ )
 
 .PHONY: all
 all: $(BINS)
 
 .PHONY: clean
 clean:
-	- rm -f $(DEPS) $(OBJS) $(BINS)
+	$(call ECHO_DO, '  RM      deps objs bins', \
+	- rm -f $(DEPS) $(OBJS) $(BINS) )
